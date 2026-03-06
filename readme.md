@@ -19,7 +19,7 @@ PACE enables controlled experiments comparing how different models and prompt st
 
 
 
----
+
 
 
 
@@ -69,7 +69,7 @@ pace/
 
 
 
----
+
 
 
 
@@ -103,7 +103,7 @@ The UI allows users to select models, prompt conditions, prompt variants, and co
 
 
 
----
+
 
 
 
@@ -135,7 +135,7 @@ Each run produces structured CSV output for later analysis.
 
 
 
----
+
 
 
 
@@ -179,7 +179,7 @@ Each check produces a score between \*\*0 and 2\*\*, along with a rationale.
 
 
 
----
+
 
 
 
@@ -207,7 +207,7 @@ It:
 
 
 
----
+
 
 
 
@@ -233,7 +233,7 @@ Responsibilities include:
 
 
 
----
+
 
 
 
@@ -261,7 +261,7 @@ These include:
 
 
 
----
+
 
 
 
@@ -297,7 +297,7 @@ Examples include:
 
 
 
----
+
 
 
 
@@ -325,7 +325,7 @@ Examples include:
 
 
 
----
+
 
 
 
@@ -351,7 +351,7 @@ Examples include:
 
 
 
----
+
 
 
 
@@ -379,7 +379,7 @@ The scoring logic itself is implemented in `bench/scoring.py`.
 
 
 
----
+
 
 
 
@@ -415,7 +415,7 @@ This creates a fully crossed experimental design.
 
 
 
----
+
 
 
 
@@ -433,7 +433,7 @@ cd pace
 
 
 
----
+
 
 
 
@@ -461,7 +461,7 @@ source .venv/bin/activate
 
 
 
----
+
 
 
 
@@ -477,7 +477,7 @@ pip install streamlit pandas numpy altair requests python-dotenv beautifulsoup4 
 
 
 
----
+
 
 
 
@@ -489,7 +489,7 @@ playwright install
 
 
 
----
+
 
 
 
@@ -517,7 +517,7 @@ node\_modules/axe-core/axe.min.js
 
 
 
----
+
 
 
 
@@ -549,7 +549,7 @@ OPENROUTER\_API\_KEY=your\_api\_key\_here
 
 
 
----
+
 
 
 
@@ -577,7 +577,7 @@ Open this URL in your browser.
 
 
 
----
+
 
 
 
@@ -623,7 +623,7 @@ Open this URL in your browser.
 
 
 
----
+
 
 
 
@@ -661,7 +661,7 @@ axe JSON results
 
 
 
----
+
 
 
 
@@ -697,7 +697,7 @@ Fields include:
 
 
 
----
+
 
 
 
@@ -723,7 +723,7 @@ Each row includes:
 
 
 
----
+
 
 
 
@@ -739,7 +739,7 @@ Each row includes:
 
 
 
----
+
 
 
 
