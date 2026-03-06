@@ -11,7 +11,7 @@ The system systematically varies prompting conditions and evaluates the resultin
 
 \- Schema-based accessibility evaluation implemented in `bench/scoring.py`
 
-\- axe-core automated accessibility testing implemented through `bench/axe\_runner.py`
+\- axe-core automated accessibility testing implemented through `bench/axe_runner.py`
 
 
 
