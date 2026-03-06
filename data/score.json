@@ -1,0 +1,1195 @@
+{
+  "schema_version": "1.0",
+  "scoring_scale": {
+    "min": 0,
+    "max": 2,
+    "anchors": {
+      "0": "Absent or incorrect (does not encode the required semantics, or encodes the wrong semantics).",
+      "1": "Attempted but incomplete (partial structure present, but missing a required link or contains invalid/broken references).",
+      "2": "Correct (encodes the required semantics with valid references and usable structure for AT)."
+    }
+  },
+  "wcag_version": "2.2",
+  "principle": "Native HTML first; use ARIA only when native semantics do not express required relationships or announcements.",
+  "check_definitions": {
+    "DOC_VALID_HTML": {
+      "title": "Valid HTML fragment and no forbidden content",
+      "wcag": [],
+      "decision_rules": {
+        "2": "Contains at least one HTML element tag and the HTML parser produces at least one element. Contains no markdown fences ('```' or '~~~') and contains no <script> or <style> elements.",
+        "1": "Contains at least one HTML element tag and the HTML parser produces at least one element, but includes <script> or <style> elements when meta.forbid_script_style=false.",
+        "0": "Contains any markdown fence ('```' or '~~~') or the HTML parser produces no elements, or (meta.forbid_script_style=true and contains <script> or <style>)."
+      },
+      "notes": "What it checks:\n- The output is actual HTML that parses into elements.\n- No markdown fences.\n- If meta.forbid_script_style=true, rejects <script> and <style>.\nWhy it matters:\n- Stops non-HTML or unsafe fragments from entering scoring.\nExamples:\n- 0: \"```<input>```\" or \"Just explaining\" (no HTML)\n- 1: \"<script></script><input id='a'>\" when meta.forbid_script_style=false\n- 2: \"<label for='a'>Name</label><input id='a'>\""
+    },
+    "ID_UNIQUENESS": {
+      "title": "All id values are unique within the fragment",
+      "wcag": [],
+      "decision_rules": {
+        "2": "All id attribute values are unique in the fragment, or no ids exist.",
+        "1": "At least one id value is duplicated, and none of the duplicated id values appear in any association reference set (label for=, aria-labelledby, aria-describedby, aria-errormessage).",
+        "0": "At least one id value is duplicated, and a duplicated id value appears in an association reference set (label for=, aria-labelledby, aria-describedby, aria-errormessage)."
+      },
+      "notes": "What it checks:\n- Every id value appears at most once.\n- A duplicate is worse when label/help/error references use it.\nWhy it matters:\n- Duplicate ids can make associations point to the wrong element.\nExample:\n- 0: \"<label for='x'>Email</label><input id='x'><div id='x'></div>\"\n- 1: \"<div id='x'></div><span id='x'></span><input id='y'>\"\n- 2: \"<input id='x'><div id='y'></div>\""
+    },
+    "REF_TARGET_EXISTS": {
+      "title": "All association references point to existing elements",
+      "wcag": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "Every id reference used by label for=, aria-labelledby, aria-describedby, and aria-errormessage points to an element that exists in the fragment. If aria-labelledby or aria-errormessage is used, referenced targets contribute non-empty text after trimming whitespace.",
+        "1": "At least one reference list contains a mix of existing and missing targets, or aria-labelledby or aria-errormessage resolves but the referenced text is empty or whitespace-only.",
+        "0": "All references point to ids that do not exist in the fragment."
+      },
+      "notes": "What it checks:\n- Every id mentioned by label for=, aria-labelledby, aria-describedby, aria-errormessage exists.\n- aria-labelledby and aria-errormessage must point to real text.\nWhy it matters:\n- Broken references remove the link between a control and its label/help/error.\nExamples:\n- 0: all referenced ids are missing\n- 1: some referenced ids exist and some are missing, or referenced text is empty\n- 2: all referenced ids exist and referenced text is non-empty"
+    },
+    "NAME_ROLE_VALUE_NATIVE": {
+      "title": "Correct native element for intended role and state",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "The primary control is a native form control element (input, select, textarea, or button). If the variant expects a specific native kind via meta.expected_primary_kind, it matches. If the variant expects file/radio/checkbox via meta flags, the required native input types are present. No role override is applied to the primary native control.",
+        "1": "The primary control is native, but an essential attribute needed to express the requested semantics is missing or mismatched (such as missing input type when meta.input_type_required=true), or a role override is present on the native control, or the input type is present but not aligned with meta.expected_input_types when those are provided.",
+        "0": "No native primary control exists, or the output uses non-native elements with ARIA roles as the main control, or the native element encodes the wrong control semantics for the expected variant (e.g., file expected but not input[type=file])."
+      },
+      "notes": "What it checks:\n- The main interactive thing is a native control.\n- Avoids fake controls (div/span + role) as the main control.\n- Uses meta to enforce file/radio/checkbox expectations when needed.\nWhy it matters:\n- Native controls expose stable semantics to browsers and AT.\nExample:\n- 0: \"<div role='textbox'></div>\"\n- 1: \"<input id='x' role='textbox'>\"\n- 2: \"<input id='x' type='text'>\""
+    },
+    "LABEL_ASSOCIATION": {
+      "title": "Programmatic label association for primary control",
+      "wcag": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "A valid programmatic label association exists through one mechanism: (a) <label for=ID> where the primary control has id=ID; or (b) the primary control is inside a <label>; or (c) aria-labelledby on the primary control references at least one existing element and the concatenated referenced text is non-empty after trimming whitespace.",
+        "1": "Label-related content exists but association is incomplete or fragile: label exists but for= is missing or broken; or aria-labelledby exists but referenced ids are missing; or aria-labelledby targets exist but contribute no text.",
+        "0": "No programmatic label association exists for the primary control."
+      },
+      "notes": "What it checks:\n- The primary control is linked to a label via for=, label wrapping, or aria-labelledby with real text.\nWhy it matters:\n- Without a programmatic link, AT may not announce the field name.\nExample:\n- 0: \"<span>Email</span><input id='e'>\"\n- 1: \"<label for='missing'>Email</label><input id='e'>\"\n- 2: \"<label for='e'>Email</label><input id='e'>\""
+    },
+    "LABEL_VISIBLE_OR_EQUIV": {
+      "title": "Label text is present and not replaced by placeholder",
+      "wcag": [
+        "3.3.2",
+        "1.3.1"
+      ],
+      "decision_rules": {
+        "2": "The primary control has non-empty label text from either <label> text or aria-labelledby referenced text after trimming whitespace. Placeholder may exist but is not the only naming source.",
+        "1": "The primary control has a name only through aria-label (non-empty after trimming whitespace) with no non-empty label text from <label>/aria-labelledby.",
+        "0": "No non-empty label text exists from <label>/aria-labelledby, and placeholder is the only apparent naming source, or all naming sources are empty/whitespace-only."
+      },
+      "notes": "What it checks:\n- There is real label text (label/aria-labelledby), not just placeholder.\nWhy it matters:\n- Placeholder-only naming disappears and is unreliable.\nExample:\n- 0: \"<input id='e' placeholder='Email'>\"\n- 1: \"<input id='e' aria-label='Email'>\"\n- 2: \"<label for='e'>Email</label><input id='e' placeholder='name@example.com'>\""
+    },
+    "DESCRIPTION_ASSOCIATION": {
+      "title": "Help/description text is programmatically associated",
+      "wcag": [
+        "1.3.1",
+        "3.3.2"
+      ],
+      "decision_rules": {
+        "2": "meta.description_ids is a non-empty list, at least one element with id in meta.description_ids exists and has non-empty text, and the relevant target (primary control, or group container if the variant uses group-level association) has aria-describedby that includes at least one id from meta.description_ids and all referenced ids exist.",
+        "1": "meta.description_ids is a non-empty list and aria-describedby exists on the relevant target, but at least one referenced id is missing, or aria-describedby does not include any id from meta.description_ids, or all meta.description_ids targets exist but have empty/whitespace-only text.",
+        "0": "meta.description_ids is a non-empty list and aria-describedby is missing on the relevant target."
+      },
+      "notes": "What it checks:\n- If description is expected, the description exists and the control/group links to it via aria-describedby.\nWhy it matters:\n- Unlinked help text can be missed and not announced.\nExample:\n- 0: \"<div id='help'>Use full name</div><input id='n'>\"\n- 1: \"<input id='n' aria-describedby='help missing'><div id='help'>Use full name</div>\"\n- 2: \"<input id='n' aria-describedby='help'><div id='help'>Use full name</div>\""
+    },
+    "REQUIRED_STATE": {
+      "title": "Required state encoded",
+      "wcag": [
+        "3.3.2",
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.required_expected=true and the primary control encodes required via required attribute, or aria-required='true' when used without conflict.",
+        "1": "meta.required_expected=true and required intent appears in text (e.g., 'required' or '*'), but the primary control has neither required nor aria-required='true', or required encoding is present but conflicting.",
+        "0": "meta.required_expected=true and there is no required encoding and no required intent text."
+      },
+      "notes": "What it checks:\n- If required is expected, required is encoded on the control.\nWhy it matters:\n- AT can only detect required fields when encoded.\nExample:\n- 0: \"<label for='n'>Name</label><input id='n'>\"\n- 1: \"<label for='n'>Name (required)</label><input id='n'>\"\n- 2: \"<label for='n'>Name</label><input id='n' required>\""
+    },
+    "REQUIRED_CUE_EXPLAINED": {
+      "title": "Required symbol cue is handled safely when present",
+      "wcag": [
+        "3.3.2"
+      ],
+      "decision_rules": {
+        "2": "meta.required_expected=true and either no '*' symbol is present, or '*' is present and is hidden from AT via aria-hidden='true'. If meta.required_symbol_explanation_required=true, the fragment also contains an explicit explanation mentioning 'required'.",
+        "1": "meta.required_expected=true and '*' symbol is present but not hidden from AT, or meta.required_symbol_explanation_required=true but no explicit 'required' explanation text is present.",
+        "0": "(Unused) Reserved for hard failures; kept for scale compatibility."
+      },
+      "notes": "What it checks:\n- If an asterisk is used, it is hidden from AT.\n- Optional visible explanation when requested by meta.\nWhy it matters:\n- Avoids asterisk being read as the only cue.\nExample:\n- 2: \"<label>Name <span aria-hidden='true'>*</span></label><input required>\"\n- 1: \"<label>Name *</label><input required>\""
+    },
+    "AUTOCOMPLETE_PRESENT": {
+      "title": "Autocomplete attribute present when applicable",
+      "wcag": [
+        "1.3.5"
+      ],
+      "decision_rules": {
+        "2": "meta.expected_autocomplete_tokens is a non-empty list and the primary control has an autocomplete attribute with a non-empty value after trimming whitespace.",
+        "1": "meta.expected_autocomplete_tokens is a non-empty list and autocomplete exists but is empty/whitespace-only, or is exactly 'on'/'off' (case-insensitive).",
+        "0": "meta.expected_autocomplete_tokens is a non-empty list and the primary control has no autocomplete attribute."
+      },
+      "notes": "What it checks:\n- If expected tokens are provided, autocomplete is present and non-empty.\nWhy it matters:\n- Helps faster, fewer-error form filling.\nExample:\n- 0: \"<input id='e' type='email'>\"\n- 1: \"<input id='e' autocomplete='on'>\"\n- 2: \"<input id='e' autocomplete='email'>\""
+    },
+    "AUTOCOMPLETE_VALID_TOKEN": {
+      "title": "Autocomplete token is appropriate for field purpose",
+      "wcag": [
+        "1.3.5"
+      ],
+      "decision_rules": {
+        "2": "meta.expected_autocomplete_tokens is a non-empty list and the primary control has autocomplete exactly equal to one value in meta.expected_autocomplete_tokens.",
+        "1": "meta.expected_autocomplete_tokens is a non-empty list and autocomplete exists but it is empty/whitespace-only or is exactly 'on'/'off' (case-insensitive).",
+        "0": "meta.expected_autocomplete_tokens is a non-empty list and (a) the primary control has no autocomplete attribute, or (b) the primary control has a non-empty autocomplete value that is not in meta.expected_autocomplete_tokens."
+      },
+      "notes": "What it checks:\n- If expected tokens are provided, autocomplete matches one of them exactly.\nWhy it matters:\n- Wrong tokens can trigger wrong autofill.\nExample:\n- 0: \"<input id='e' type='email'>\" (missing autocomplete)\n- 0: \"<input id='e' autocomplete='cc-number'>\"\n- 1: \"<input id='e' autocomplete='on'>\"\n- 2: \"<input id='e' autocomplete='email'>\""
+    },
+    "INPUT_TYPE_MATCHES_PURPOSE": {
+      "title": "Input type matches field purpose",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.expected_input_types is a non-empty list and the primary control is an input whose type is one of the values in meta.expected_input_types (case-insensitive).",
+        "1": "meta.expected_input_types is a non-empty list and the primary control is input type='text' while 'text' is not in meta.expected_input_types (treated as a generic fallback).",
+        "0": "meta.expected_input_types is a non-empty list and the primary control is not an input, or the input type is a clear semantic mismatch (e.g., checkbox/radio/file/submit for a textlike field), or the input type is non-empty and not in meta.expected_input_types without being a reasonable fallback."
+      },
+      "notes": "What it checks:\n- If expected input types are provided, the input type matches.\nWhy it matters:\n- Type affects keyboard, validation, and meaning.\nExample:\n- 0: \"<input id='e' type='password'>\"\n- 1: \"<input id='e' type='text'>\"\n- 2: \"<input id='e' type='email'>\""
+    },
+    "CONSTRAINT_PATTERN_EXPLAINED": {
+      "title": "Pattern/format constraint explained to user",
+      "wcag": [
+        "3.3.2",
+        "3.3.3"
+      ],
+      "decision_rules": {
+        "2": "meta.pattern_expected=true and the primary control has a pattern attribute, and meta.pattern_guidance_ids is a non-empty list, and at least one guidance element exists with non-empty text, and aria-describedby on the primary control references at least one id in meta.pattern_guidance_ids with all referenced ids existing.",
+        "1": "meta.pattern_expected=true and the primary control has a pattern attribute, and meta.pattern_guidance_ids is non-empty, but aria-describedby is missing or does not include any id from meta.pattern_guidance_ids, or referenced ids are missing, or guidance text is empty/whitespace-only.",
+        "0": "meta.pattern_expected=true and the primary control has no pattern attribute, or meta.pattern_guidance_ids is missing/empty, or no guidance element exists with non-empty text."
+      },
+      "notes": "What it checks:\n- If a pattern is expected, pattern exists and guidance text is linked.\nWhy it matters:\n- Users need the format to avoid repeated errors.\nExample:\n- 0: \"<input id='p' pattern='[0-9]{5}'>\"\n- 1: \"<div id='hint'>5 digits</div><input id='p' pattern='[0-9]{5}' aria-describedby='missing'>\"\n- 2: \"<div id='hint'>5 digits</div><input id='p' pattern='[0-9]{5}' aria-describedby='hint'>\""
+    },
+    "ERROR_PRESENT": {
+      "title": "Error message exists in text when requested",
+      "wcag": [
+        "3.3.1",
+        "3.3.3"
+      ],
+      "decision_rules": {
+        "2": "meta.error_ids is a non-empty list and at least one element with id in meta.error_ids exists and has non-empty text that is more specific than a generic word like 'Error'.",
+        "1": "meta.error_ids is a non-empty list and at least one element with id in meta.error_ids exists but the text is empty/whitespace-only or overly generic (e.g., 'Error').",
+        "0": "meta.error_ids is a non-empty list and no element with id in meta.error_ids exists."
+      },
+      "notes": "What it checks:\n- If error elements are expected, at least one exists and has meaningful text.\nWhy it matters:\n- Vague or missing errors block correction.\nExample:\n- 0: \"<input id='e' aria-invalid='true'>\"\n- 1: \"<div id='err'>Error</div><input id='e'>\"\n- 2: \"<div id='err'>Enter a valid email address.</div><input id='e'>\""
+    },
+    "ERROR_ASSOCIATED": {
+      "title": "Error message is programmatically associated to control/group",
+      "wcag": [
+        "1.3.1",
+        "3.3.1"
+      ],
+      "decision_rules": {
+        "2": "meta.error_ids is a non-empty list and the relevant target (primary control, or group container when meta.group_validation_expected=true) has aria-describedby or aria-errormessage that includes at least one id in meta.error_ids, and all referenced ids exist.",
+        "1": "meta.error_ids is a non-empty list and aria-describedby or aria-errormessage exists on the relevant target, but at least one referenced id is missing, or none of the referenced ids are in meta.error_ids.",
+        "0": "meta.error_ids is a non-empty list and there is no aria-describedby and no aria-errormessage on the relevant target."
+      },
+      "notes": "What it checks:\n- If errors are expected, the control (or group) links to the error.\nWhy it matters:\n- Error must be discoverable in context.\nExample:\n- 0: \"<div id='err'>Bad email</div><input id='e'>\"\n- 1: \"<input id='e' aria-describedby='missing'><div id='err'>Bad email</div>\"\n- 2: \"<input id='e' aria-describedby='err'><div id='err'>Bad email</div>\""
+    },
+    "ERROR_INVALID_STATE": {
+      "title": "Invalid state encoded",
+      "wcag": [
+        "3.3.1",
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.error_ids is a non-empty list and aria-invalid='true' is set on the relevant target (primary control, or group container when meta.group_validation_expected=true).",
+        "1": "meta.error_ids is a non-empty list and aria-invalid exists but is not exactly 'true' (case-insensitive), or aria-invalid='true' is placed on a non-relevant element while missing on the relevant target.",
+        "0": "meta.error_ids is a non-empty list and aria-invalid is missing on the relevant target."
+      },
+      "notes": "What it checks:\n- If an error is expected, aria-invalid='true' appears on the correct element.\nWhy it matters:\n- Consistent invalid state for AT and tooling.\nExample:\n- 0: \"<div id='err'>Bad email</div><input id='e' aria-describedby='err'>\"\n- 1: \"<input id='e' aria-invalid='false'><div id='err'>Bad email</div>\"\n- 2: \"<input id='e' aria-invalid='true' aria-describedby='err'><div id='err'>Bad email</div>\""
+    },
+    "STATUS_ANNOUNCE": {
+      "title": "Status/error announcements support AT when requested",
+      "wcag": [
+        "4.1.3"
+      ],
+      "decision_rules": {
+        "2": "meta.status_ids is a non-empty list, at least one element with id in meta.status_ids exists, and at least one such element has role='status' or role='alert' (case-insensitive) or has aria-live with a non-empty value after trimming whitespace.",
+        "1": "meta.status_ids is a non-empty list, at least one element with id in meta.status_ids exists, but none has role='status'/'alert' and aria-live is missing or empty/whitespace-only.",
+        "0": "meta.status_ids is a non-empty list and no element with id in meta.status_ids exists."
+      },
+      "notes": "What it checks:\n- If a status region is expected, it exists and is marked as live.\nWhy it matters:\n- Updates get announced to AT.\nExample:\n- 0: status missing\n- 1: status exists but not live\n- 2: \"<div id='status' role='status'>Saved</div>\""
+    },
+    "GROUP_FIELDSET_LEGEND": {
+      "title": "Related controls grouped with fieldset/legend",
+      "wcag": [
+        "1.3.1",
+        "2.4.6"
+      ],
+      "decision_rules": {
+        "2": "meta.group_required=true and the fragment contains a fieldset with a legend whose text is non-empty after trimming whitespace.",
+        "1": "meta.group_required=true and a fieldset exists but legend is missing/empty, or the fragment uses role='group' and the group container has a non-empty accessible name via aria-label or aria-labelledby with valid references.",
+        "0": "meta.group_required=true and there is no fieldset and no usable role='group' fallback."
+      },
+      "notes": "What it checks:\n- For option sets, fieldset + legend is preferred.\nWhy it matters:\n- Announces the group question/name.\nExample:\n- 0: radios with no group name\n- 1: fieldset no legend, or named role=group\n- 2: \"<fieldset><legend>Choose a size</legend>...\""
+    },
+    "RADIO_SAME_NAME": {
+      "title": "Radio options share same name",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.radio_group_expected=true and all radio inputs in the fragment share the same non-empty name value after trimming whitespace.",
+        "1": "meta.radio_group_expected=true and at least two radios share a non-empty name, but at least one radio is missing name or has a different name.",
+        "0": "meta.radio_group_expected=true and there is no consistent non-empty shared name across radios, or fewer than 2 radios exist."
+      },
+      "notes": "What it checks:\n- For radio groups, all radios share one name.\nWhy it matters:\n- Radios only act as single-choice with shared name.\nExample:\n- 0: missing names\n- 1: mixed names\n- 2: all name='size'"
+    },
+    "EACH_OPTION_LABELED": {
+      "title": "Each option has its own programmatic label",
+      "wcag": [
+        "1.3.1",
+        "3.3.2"
+      ],
+      "decision_rules": {
+        "2": "meta.option_inputs_expected=true and for every radio/checkbox input, there is a valid programmatic name source via label for=, label wrapping, aria-labelledby with existing targets and non-empty referenced text, or non-empty aria-label.",
+        "1": "meta.option_inputs_expected=true and at least one option is labeled, but at least one option lacks a valid association or has broken references or empty label text.",
+        "0": "meta.option_inputs_expected=true and no options have a valid label association, or no option inputs exist."
+      },
+      "notes": "What it checks:\n- Every option has its own name.\nWhy it matters:\n- Unlabeled options are hard to use in AT.\nExample:\n- 0: radios with no labels\n- 1: some labeled\n- 2: each input has a label"
+    },
+    "DISABLED_STATE": {
+      "title": "Disabled state encoded correctly",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.disabled_expected=true and the primary control has the disabled attribute present.",
+        "1": "meta.disabled_expected=true and aria-disabled='true' is present on the primary control but disabled is missing, or disabled intent appears on some other element in the fragment (any element has disabled or aria-disabled='true') while the primary control lacks disabled.",
+        "0": "meta.disabled_expected=true and no disabled encoding exists on the primary control and no other element in the fragment indicates disabled."
+      },
+      "notes": "What it checks:\n- If disabled is expected, the actual control is disabled.\nWhy it matters:\n- Ensures true non-interaction and correct state exposure."
+    },
+    "READONLY_STATE": {
+      "title": "Readonly state encoded correctly",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.readonly_expected=true and the primary control has the readonly attribute present.",
+        "1": "meta.readonly_expected=true and aria-readonly='true' is present but readonly is missing, or readonly intent appears on some other element in the fragment (any element has readonly or aria-readonly='true') while the primary control lacks readonly.",
+        "0": "meta.readonly_expected=true and no readonly encoding exists on the primary control and no other element in the fragment indicates readonly."
+      },
+      "notes": "What it checks:\n- If readonly is expected, readonly is set on the actual control.\nWhy it matters:\n- Readonly stays focusable and must be consistent."
+    },
+    "FILE_INPUT_SEMANTICS": {
+      "title": "File input uses correct native semantics",
+      "wcag": [
+        "4.1.2"
+      ],
+      "decision_rules": {
+        "2": "meta.file_input_expected=true and input[type=file] exists. Required attributes listed in meta.file_required_attributes are present. If meta.file_required_attributes includes 'accept', accept is non-empty and all accept tokens are well-formed. If meta.expected_accept_tokens is non-empty, accept covers those expected tokens at a high level (including allowance for broad tokens like image/* or application/pdf).",
+        "1": "meta.file_input_expected=true and input[type=file] exists, but at least one required attribute in meta.file_required_attributes is missing or empty, or accept is required and empty/malformed, or accept is present and being evaluated against meta.expected_accept_tokens but does not cover the expected tokens at a high level.",
+        "0": "meta.file_input_expected=true and input[type=file] is missing."
+      },
+      "notes": "What it checks:\n- When a file upload is expected, uses input[type=file].\n- Enforces any attributes listed in meta.file_required_attributes.\n- If 'accept' is required, validates accept tokens and (when meta.expected_accept_tokens exists) checks coverage with broad-token allowances.\nWhy it matters:\n- File inputs have built-in browser and AT behavior.\nExamples:\n- 0: file expected but no input[type=file]\n- 1: input[type=file] exists but required attributes are missing/empty, or accept is malformed, or accept lacks expected coverage\n- 2: input[type=file] exists and meets required attributes; accept (when required) is valid and covers expected types"
+    },
+    "BUTTON_TYPE_AND_NAME": {
+      "title": "Button has correct type and accessible name",
+      "wcag": [
+        "4.1.2",
+        "2.4.6"
+      ],
+      "decision_rules": {
+        "2": "meta.button_expected=true and either a <button> exists or an input[type=submit|reset|button] exists, it has a non-empty accessible name (button text, input value, or aria-label), and if meta.expected_button_type is set it matches.",
+        "1": "meta.button_expected=true and a native button exists but the type mismatches expected_button_type, or the name relies only on aria-label (no visible text/value).",
+        "0": "meta.button_expected=true and no native button exists, or the button has no accessible name."
+      },
+      "notes": "What it checks:\n- If a button is expected, it exists and has a usable name.\n- Enforces expected type when declared.\nWhy it matters:\n- Prevents unnamed buttons and type mismatches."
+    }
+  },
+  "components": [
+    {
+      "id": "C01",
+      "name": "Text Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "Text Field (Required)",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "Text Field with Placeholder",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "Text Field with Pattern",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "CONSTRAINT_PATTERN_EXPLAINED",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C05",
+      "name": "Text Field with Autocomplete Suggestion",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "AUTOCOMPLETE_PRESENT",
+        "AUTOCOMPLETE_VALID_TOKEN",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C06",
+      "name": "Text Field with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C07",
+      "name": "Text Field with Non-visible Label",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C08",
+      "name": "Text Field with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C09",
+      "name": "Email Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C10",
+      "name": "Email Field with Required",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C11",
+      "name": "Email Field with Placeholder",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C12",
+      "name": "Email Field with Autocomplete Suggestion",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "AUTOCOMPLETE_PRESENT",
+        "AUTOCOMPLETE_VALID_TOKEN",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C13",
+      "name": "Email Field with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C14",
+      "name": "Email Field with Required, Autocomplete, and Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "AUTOCOMPLETE_PRESENT",
+        "AUTOCOMPLETE_VALID_TOKEN",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C15",
+      "name": "Email Field with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C16",
+      "name": "Credit Card Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C17",
+      "name": "Quantity Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C18",
+      "name": "Select Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C19",
+      "name": "Select Field with Required",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C20",
+      "name": "Select Field with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C21",
+      "name": "Radio Group",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "RADIO_SAME_NAME",
+        "EACH_OPTION_LABELED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C22",
+      "name": "Radio Group with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "RADIO_SAME_NAME",
+        "EACH_OPTION_LABELED",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C23",
+      "name": "Radio Group with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "RADIO_SAME_NAME",
+        "EACH_OPTION_LABELED",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C24",
+      "name": "Checkbox Group",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "EACH_OPTION_LABELED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C25",
+      "name": "Checkbox Group with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "EACH_OPTION_LABELED",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C26",
+      "name": "Checkbox Group with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "EACH_OPTION_LABELED",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C27",
+      "name": "Confirmation Checkbox",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C28",
+      "name": "Confirmation Checkbox with Link",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C29",
+      "name": "Textarea Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C30",
+      "name": "Textarea Field with Required",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C31",
+      "name": "Textarea Field with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C32",
+      "name": "Textarea Field with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C33",
+      "name": "Submit Button",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "BUTTON_TYPE_AND_NAME",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C34",
+      "name": "Submit Button with Icon",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "BUTTON_TYPE_AND_NAME",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C35",
+      "name": "Password Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C36",
+      "name": "Password Field (Required)",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REQUIRED_STATE",
+        "REQUIRED_CUE_EXPLAINED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C37",
+      "name": "Password Field with Autocomplete Suggestion",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "AUTOCOMPLETE_PRESENT",
+        "AUTOCOMPLETE_VALID_TOKEN",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C38",
+      "name": "Password Field with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C39",
+      "name": "Password Field with Validation Error",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "ERROR_PRESENT",
+        "ERROR_ASSOCIATED",
+        "ERROR_INVALID_STATE",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C40",
+      "name": "Range Slider",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C41",
+      "name": "URL Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C42",
+      "name": "Search Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C43",
+      "name": "Color Picker",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C44",
+      "name": "Date Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C45",
+      "name": "Time Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C46",
+      "name": "Datetime-local Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C47",
+      "name": "File Upload Field (Unrestricted)",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "FILE_INPUT_SEMANTICS",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C48",
+      "name": "Multiple File Upload Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "FILE_INPUT_SEMANTICS",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C49",
+      "name": "Image File Upload Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "FILE_INPUT_SEMANTICS",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C50",
+      "name": "Document File Upload Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "FILE_INPUT_SEMANTICS",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C51",
+      "name": "Reset Button",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "BUTTON_TYPE_AND_NAME",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C52",
+      "name": "Disabled Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "DISABLED_STATE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C53",
+      "name": "Readonly Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "READONLY_STATE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C54",
+      "name": "Toggle Switch",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C55",
+      "name": "Toggle Switch with Accessible Description",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "DESCRIPTION_ASSOCIATION",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C56",
+      "name": "Toggle Switch Group with Multiple Types",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "GROUP_FIELDSET_LEGEND",
+        "EACH_OPTION_LABELED",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C57",
+      "name": "Textarea with Character Counter",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "LABEL_ASSOCIATION",
+        "STATUS_ANNOUNCE",
+        "REF_TARGET_EXISTS"
+      ]
+    },
+    {
+      "id": "C58",
+      "name": "Phone Number Field",
+      "checks": [
+        "DOC_VALID_HTML",
+        "ID_UNIQUENESS",
+        "NAME_ROLE_VALUE_NATIVE",
+        "INPUT_TYPE_MATCHES_PURPOSE",
+        "LABEL_ASSOCIATION",
+        "LABEL_VISIBLE_OR_EQUIV",
+        "REF_TARGET_EXISTS"
+      ]
+    }
+  ],
+  "implementation_notes": {
+    "meta_contract": "Each component variant may supply component_meta to the scorer. Meta controls applicability and expected ids/types. If a check is not applicable for a variant, the scorer returns score=2 with a rationale like 'Not applicable; score=2 by rule.'",
+    "expected_meta_keys": [
+      "forbid_script_style",
+      "primary_control_id",
+      "expected_primary_kind",
+      "input_type_required",
+      "expected_input_types",
+      "expected_autocomplete_tokens",
+      "description_ids",
+      "required_expected",
+      "pattern_expected",
+      "pattern_guidance_ids",
+      "error_ids",
+      "group_validation_expected",
+      "group_description_expected",
+      "status_ids",
+      "group_required",
+      "group_container_id",
+      "radio_group_expected",
+      "option_inputs_expected",
+      "disabled_expected",
+      "readonly_expected",
+      "file_input_expected",
+      "file_required_attributes",
+      "button_expected",
+      "expected_button_type",
+      "expected_accept_tokens",
+      "required_symbol_explanation_required"
+    ],
+    "aria_policy": "ARIA checks are scored only when the component includes descriptions, errors, or status messages that require programmatic association or announcement. Native semantics are preferred; unnecessary ARIA can reduce score under NAME_ROLE_VALUE_NATIVE if it misstates role or state.",
+    "why_not_all_need_aria": "Many native form controls already expose role, state, and value to assistive tech. ARIA is mainly used to associate external descriptions or errors, or to announce status changes.",
+    "scope_note": "Behavioral checks are excluded because evaluation is restricted to HTML-only fragments without scripts or runtime interaction.",
+    "meta_source_of_truth": "Component semantics must be enforced via component_meta in the component variant definition (for example in components.json). Avoid relying on component name substring matching to infer expected_input_types or other semantics.",
+    "required_meta_by_component_id": {
+      "C17": {
+        "required_component_meta": {
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "number"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Quantity Field should enforce native input[type=number]."
+      },
+      "C27": {
+        "required_component_meta": {
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "checkbox"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Confirmation Checkbox should enforce native input[type=checkbox]."
+      },
+      "C28": {
+        "required_component_meta": {
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "checkbox"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Confirmation Checkbox with Link should enforce native input[type=checkbox]."
+      },
+      "C54": {
+        "required_component_meta": {
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "checkbox"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Toggle Switch should be implemented as a native checkbox for stable semantics."
+      },
+      "C55": {
+        "required_component_meta": {
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "checkbox"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Toggle Switch with Accessible Description should be implemented as a native checkbox."
+      },
+      "C56": {
+        "required_component_meta": {
+          "group_required": true,
+          "option_inputs_expected": true,
+          "expected_primary_kind": "input",
+          "expected_input_types": [
+            "checkbox"
+          ],
+          "input_type_required": true
+        },
+        "reason": "Toggle Switch Group should be treated as a group of native checkbox inputs and grouped with fieldset/legend or a named role=group fallback."
+      }
+    },
+    "naming_conventions_for_meta": {
+      "stable_component_intent": "If a component semantic intent is not unambiguously derivable from its name, the variant must set component_meta explicitly, especially expected_input_types and input_type_required.",
+      "examples": [
+        "Do not rely on 'Quantity Field' string matching; set expected_input_types=['number'].",
+        "Do not rely on 'Toggle Switch' string matching; set expected_input_types=['checkbox'].",
+        "Do not rely on 'Confirmation Checkbox' string matching; set expected_input_types=['checkbox']."
+      ]
+    }
+  }
+}

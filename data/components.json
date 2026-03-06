@@ -1,0 +1,410 @@
+{
+  "tests": [
+    {
+      "test_id": "C01",
+      "title": "Text Field",
+      "component": "text field",
+      "label": "What color is an orange",
+      "suffix": ""
+    },
+    {
+      "test_id": "C02",
+      "title": "Text Field (Required)",
+      "component": "required text field",
+      "label": "What color is an orange?",
+      "suffix": ""
+    },
+    {
+      "test_id": "C03",
+      "title": "Text Field with Placeholder",
+      "component": "text field",
+      "label": "Who is your favorite dinosaur?",
+      "suffix": " with hint “Rex”"
+    },
+    {
+      "test_id": "C04",
+      "title": "Text Field with Pattern",
+      "component": "text field",
+      "label": "Enter two letters followed by 3 numbers",
+      "suffix": ""
+    },
+    {
+      "test_id": "C05",
+      "title": "Text Field with Autocomplete Suggestion",
+      "component": "text field",
+      "label": "Your first name",
+      "suffix": " with autocomplete=given-name"
+    },
+    {
+      "test_id": "C06",
+      "title": "Text Field with Accessible Description",
+      "component": "text field",
+      "label": "What is your favorite U.S. city?",
+      "suffix": " with note “Please include the state name or abbreviation”"
+    },
+    {
+      "test_id": "C07",
+      "title": "Text Field with Non-visible Label",
+      "component": "text field",
+      "label": "Search for",
+      "suffix": " with a hidden label"
+    },
+    {
+      "test_id": "C08",
+      "title": "Text Field with Validation Error",
+      "component": "text field",
+      "label": "What color is an orange?",
+      "suffix": " with a validation error “That’s not right. Try again.”"
+    },
+    {
+      "test_id": "C09",
+      "title": "Email Field",
+      "component": "email field",
+      "label": "Desired email address",
+      "suffix": ""
+    },
+    {
+      "test_id": "C10",
+      "title": "Email Field with Required",
+      "component": "required email field",
+      "label": "Desired email address",
+      "suffix": ""
+    },
+    {
+      "test_id": "C11",
+      "title": "Email Field with Placeholder",
+      "component": "email field",
+      "label": "Desired email address",
+      "suffix": " with placeholder “yourname@ourdomain.tld”"
+    },
+    {
+      "test_id": "C12",
+      "title": "Email Field with Autocomplete Suggestion",
+      "component": "email field",
+      "label": "Email address",
+      "suffix": " with autocomplete=email"
+    },
+    {
+      "test_id": "C13",
+      "title": "Email Field with Accessible Description",
+      "component": "email field",
+      "label": "Email Address",
+      "suffix": " with note “We will never share or sell your email address”"
+    },
+    {
+      "test_id": "C14",
+      "title": "Email Field with Required, Autocomplete, and Accessible Description",
+      "component": "required email field",
+      "label": "Email Address",
+      "suffix": " with autocomplete=email with note “We will never share or sell your email address”"
+    },
+    {
+      "test_id": "C15",
+      "title": "Email Field with Validation Error",
+      "component": "email field",
+      "label": "Email Address",
+      "suffix": " with a validation error “Your email address is invalid.”"
+    },
+    {
+      "test_id": "C16",
+      "title": "Credit Card Field",
+      "component": "credit card field",
+      "label": "Credit Card Number",
+      "suffix": ""
+    },
+    {
+      "test_id": "C17",
+      "title": "Quantity Field",
+      "component": "number field",
+      "label": "Item Quantity",
+      "suffix": ""
+    },
+    {
+      "test_id": "C18",
+      "title": "Select Field",
+      "component": "select field",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast"
+    },
+    {
+      "test_id": "C19",
+      "title": "Select Field with Required",
+      "component": "required select field",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast"
+    },
+    {
+      "test_id": "C20",
+      "title": "Select Field with Accessible Description",
+      "component": "select field",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast with note “You can change this later”"
+    },
+    {
+      "test_id": "C21",
+      "title": "Radio Group",
+      "component": "radio group",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast"
+    },
+    {
+      "test_id": "C22",
+      "title": "Radio Group with Accessible Description",
+      "component": "radio group",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast with note “You can change this later”"
+    },
+    {
+      "test_id": "C23",
+      "title": "Radio Group with Validation Error",
+      "component": "radio group",
+      "label": "Theme",
+      "suffix": " with options light, dark, high contrast with a validation error “You must choose a theme to proceed”"
+    },
+    {
+      "test_id": "C24",
+      "title": "Checkbox Group",
+      "component": "checkbox group",
+      "label": "What fruits do you like?",
+      "suffix": " with options bananas, oranges, apples"
+    },
+    {
+      "test_id": "C25",
+      "title": "Checkbox Group with Accessible Description",
+      "component": "checkbox group",
+      "label": "What fruits do you like?",
+      "suffix": " with options bananas, oranges, apples with note “You can change this later”"
+    },
+    {
+      "test_id": "C26",
+      "title": "Checkbox Group with Validation Error",
+      "component": "checkbox group",
+      "label": "What fruits do you like?",
+      "suffix": " with options bananas, oranges, apples with a validation error “You must choose one or more fruits”"
+    },
+    {
+      "test_id": "C27",
+      "title": "Confirmation Checkbox",
+      "component": "checkbox",
+      "label": "I agree to the Terms and Conditions",
+      "suffix": ""
+    },
+    {
+      "test_id": "C28",
+      "title": "Confirmation Checkbox with Link",
+      "component": "checkbox",
+      "label": "I agree to the Terms and Conditions",
+      "suffix": " with a link to that page"
+    },
+    {
+      "test_id": "C29",
+      "title": "Textarea Field",
+      "component": "textarea field",
+      "label": "Message",
+      "suffix": ""
+    },
+    {
+      "test_id": "C30",
+      "title": "Textarea Field with Required",
+      "component": "required textarea field",
+      "label": "Message",
+      "suffix": ""
+    },
+    {
+      "test_id": "C31",
+      "title": "Textarea Field with Accessible Description",
+      "component": "textarea field",
+      "label": "Message",
+      "suffix": " with note “Please describe your problem in as much detail as possible.”"
+    },
+    {
+      "test_id": "C32",
+      "title": "Textarea Field with Validation Error",
+      "component": "textarea field",
+      "label": "Message",
+      "suffix": " with a validation error “Your message should be at least 20 words long. Please describe your problem in as much detail as possible.”"
+    },
+    {
+      "test_id": "C33",
+      "title": "Submit Button",
+      "component": "submit button",
+      "label": "Submit",
+      "suffix": ""
+    },
+    {
+      "test_id": "C34",
+      "title": "Submit Button with Icon",
+      "component": "submit button",
+      "label": "Submit",
+      "suffix": " with an icon"
+    },
+    {
+      "test_id": "C35",
+      "title": "Password Field",
+      "component": "password field",
+      "label": "New password",
+      "suffix": ""
+    },
+    {
+      "test_id": "C36",
+      "title": "Password Field (Required)",
+      "component": "required password field",
+      "label": "New password",
+      "suffix": ""
+    },
+    {
+      "test_id": "C37",
+      "title": "Password Field with Autocomplete Suggestion",
+      "component": "password field",
+      "label": "new-password",
+      "suffix": " with autocomplete=new-password"
+    },
+    {
+      "test_id": "C38",
+      "title": "Password Field with Accessible Description",
+      "component": "password field",
+      "label": "New password",
+      "suffix": " with note “Must include 1 number and 1 symbol.”"
+    },
+    {
+      "test_id": "C39",
+      "title": "Password Field with Validation Error",
+      "component": "password field",
+      "label": "New password",
+      "suffix": " with a validation error “Too short. Must be at least 8 characters.”"
+    },
+    {
+      "test_id": "C40",
+      "title": "Range Slider",
+      "component": "range slider",
+      "label": "Volume",
+      "suffix": " with range input 1–10"
+    },
+    {
+      "test_id": "C41",
+      "title": "URL Field",
+      "component": "URL field",
+      "label": "Website URL",
+      "suffix": ""
+    },
+    {
+      "test_id": "C42",
+      "title": "Search Field",
+      "component": "search field",
+      "label": "Search",
+      "suffix": ""
+    },
+    {
+      "test_id": "C43",
+      "title": "Color Picker",
+      "component": "color input",
+      "label": "Pick a color",
+      "suffix": ""
+    },
+    {
+      "test_id": "C44",
+      "title": "Date Field",
+      "component": "date field",
+      "label": "Birthdate",
+      "suffix": ""
+    },
+    {
+      "test_id": "C45",
+      "title": "Time Field",
+      "component": "time field",
+      "label": "Meeting Time",
+      "suffix": ""
+    },
+    {
+      "test_id": "C46",
+      "title": "Datetime-local Field",
+      "component": "datetime-local input",
+      "label": "Event Time",
+      "suffix": ""
+    },
+    {
+      "test_id": "C47",
+      "title": "File Upload Field (Unrestricted)",
+      "component": "unrestricted file upload field",
+      "label": "Upload a File",
+      "suffix": ""
+    },
+    {
+      "test_id": "C48",
+      "title": "Multiple File Upload Field",
+      "component": "multiple file upload field",
+      "label": "Upload Files",
+      "suffix": " accepting .pdf, .docx, .txt, .png, .jpg, .gif, .svg"
+    },
+    {
+      "test_id": "C49",
+      "title": "Image File Upload Field",
+      "component": "image file upload field",
+      "label": "Upload Photo",
+      "suffix": ""
+    },
+    {
+      "test_id": "C50",
+      "title": "Document File Upload Field",
+      "component": "document file upload field",
+      "label": "Upload Document",
+      "suffix": ""
+    },
+    {
+      "test_id": "C51",
+      "title": "Reset Button",
+      "component": "reset button",
+      "label": "Reset",
+      "suffix": ""
+    },
+    {
+      "test_id": "C52",
+      "title": "Disabled Field",
+      "component": "disabled text field",
+      "label": "Promo Code",
+      "suffix": ""
+    },
+    {
+      "test_id": "C53",
+      "title": "Readonly Field",
+      "component": "read-only field",
+      "label": "User ID",
+      "suffix": ""
+    },
+    {
+      "test_id": "C54",
+      "title": "Toggle Switch",
+      "component": "toggle switch",
+      "label": "Notifications",
+      "suffix": ""
+    },
+    {
+      "test_id": "C55",
+      "title": "Toggle Switch with Accessible Description",
+      "component": "toggle switch",
+      "label": "Notifications",
+      "suffix": " with note “Turn alerts on or off.”"
+    },
+    {
+      "test_id": "C56",
+      "title": "Toggle Switch Group with Multiple Types",
+      "component": "group of toggle switches",
+      "label": "Notification Types",
+      "suffix": " with toggles for Email, SMS, and Push"
+    },
+    {
+      "test_id": "C57",
+      "title": "Textarea with Character Counter",
+      "component": "textarea field",
+      "label": "Message",
+      "suffix": " with a character counter (max 200 characters)"
+    },
+    {
+      "test_id": "C58",
+      "title": "Phone Number Field",
+      "component": "phone number field",
+      "label": "Phone number",
+      "suffix": ""
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "variants": [
+    {
+      "variant_id": "G1",
+      "label": "Build request",
+      "template": "Build a {component} for “{label}”{suffix}."
+    },
+    {
+      "variant_id": "G2",
+      "label": "Shorthand",
+      "template": "{component} — “{label}”{suffix}"
+    },
+    {
+      "variant_id": "G3",
+      "label": "Intent-first",
+      "template": "Users need to provide “{label}”{suffix}. Add a {component}."
+    },
+    {
+      "variant_id": "G4",
+      "label": "Implementation",
+      "template": "Implement {component} for “{label}”{suffix}. Treat this like it has to pass review."
+    },
+    {
+      "variant_id": "G5",
+      "label": "Design-system",
+      "template": "Add a reusable {component} for “{label}”{suffix}, consistent with a shared component library."
+    },
+    {
+      "variant_id": "G6",
+      "label": "Legacy integration",
+      "template": "We’re adding {component} to an existing page. Implement it for “{label}”{suffix} with minimal assumptions."
+    },
+    {
+      "variant_id": "G7",
+      "label": "Robustness",
+      "template": "Implement a {component} for “{label}”{suffix} that behaves sensibly across common edge cases."
+    },
+    {
+      "variant_id": "G8",
+      "label": "Debug / repair",
+      "template": "Create a {component} for “{label}”{suffix}. Assume previous attempts often get the basics wrong."
+    },
+    {
+      "variant_id": "G9",
+      "label": "Documentation example",
+      "template": "Provide an example {component} for “{label}”{suffix} as if it’s going into docs."
+    },
+    {
+      "variant_id": "G10",
+      "label": "Product copy request",
+      "template": "Add a {component} so someone can enter “{label}”{suffix}."
+    },
+    {
+      "variant_id": "G11",
+      "label": "Accessibility keyword",
+      "template": "Create an accessible {component} for “{label}”{suffix}."
+    }
+  ]
+}
