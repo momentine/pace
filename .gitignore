@@ -1,7 +1,10 @@
- # Python
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
 
 # virtual environments
 venv/
@@ -11,8 +14,17 @@ env/
 # environment variables
 .env
 
+# Streamlit secrets
+.streamlit/secrets.toml
+
 # benchmark outputs
 output/_runs/
+
+# generated data (rebuild with scripts/sync_openrouter_models.py)
+data/models.json
+
+# Node dependencies (axe-core)
+node_modules/
 
 # system files
 .DS_Store
