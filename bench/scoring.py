@@ -25,7 +25,7 @@ EXPECTED_META_KEYS = {
     "title",
     "label",
     "component",
-    "suffix",
+    "attribute",
     "allow_component_inference",
     "forbid_script_style",
     "primary_control_id",
@@ -126,7 +126,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
     Expected inputs inside meta_in (any subset):
       - test_id (e.g., "C6" / "C06" / "c06")
       - component (e.g., "required email field")
-      - suffix (the exact suffix string from components.json)
+      - attribute (the exact attribute string from components.json)
       - title, label (optional; not required for ids)
 
     Output:
@@ -144,7 +144,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
 
     tid = _norm_test_id(str(meta.get("test_id") or ""))
     comp = str(meta.get("component") or "").strip().lower()
-    suffix = str(meta.get("suffix") or "").strip()
+    attribute = str(meta.get("attribute") or "").strip()
     title = str(meta.get("title") or "").strip().lower()
 
     # When True, infer semantics (types/kinds/flags) from component/title strings.
@@ -177,13 +177,13 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
             _maybe_set(meta, "required_expected", True)
 
     # ---- autocomplete ----
-    m = AUTOCOMP_RE.search(suffix)
+    m = AUTOCOMP_RE.search(attribute)
     if m:
         tok = m.group(1).strip()
         _maybe_set(meta, "expected_autocomplete_tokens", [tok])
 
     # ---- description/note -> cX-desc ----
-    m_note = NOTE_RE.search(suffix)
+    m_note = NOTE_RE.search(attribute)
     if m_note and tid:
         _maybe_set(meta, "description_ids", [f"{tid}-desc"])
 
@@ -193,7 +193,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
             _maybe_set(meta, "group_description_expected", True)
 
     # ---- errors -> cX-error + status ----
-    m_err = ERROR_RE.search(suffix)
+    m_err = ERROR_RE.search(attribute)
     if m_err and tid:
         _maybe_set(meta, "error_ids", [f"{tid}-error"])
         _maybe_set(meta, "status_ids", [f"{tid}-status"])
@@ -203,7 +203,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
             _maybe_set(meta, "group_validation_expected", True)
 
     # ---- placeholder / hint ----
-    m_ph = PLACEHOLDER_RE.search(suffix) or HINT_RE.search(suffix)
+    m_ph = PLACEHOLDER_RE.search(attribute) or HINT_RE.search(attribute)
     if m_ph:
         _maybe_set(meta, "expected_placeholder", m_ph.group(1).strip())
 
@@ -217,7 +217,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
                 _maybe_set(meta, "pattern_guidance_ids", [f"{tid}-desc"])
 
     # ---- character counter/status -> cX-status ----
-    m_cc = CHARCOUNT_RE.search(suffix)
+    m_cc = CHARCOUNT_RE.search(attribute)
     if m_cc and tid:
         _maybe_set(meta, "status_ids", [f"{tid}-status"])
 
@@ -254,7 +254,7 @@ def _derive_meta_from_components_fields(meta_in: Dict[str, Any]) -> Dict[str, An
             if "multiple file upload" in comp:
                 _maybe_set(meta, "file_required_attributes", ["multiple"])
 
-            m_acc = ACCEPTING_RE.search(suffix)
+            m_acc = ACCEPTING_RE.search(attribute)
             if m_acc:
                 raw = m_acc.group(1).strip()
                 toks = [t.strip() for t in re.split(r"\s*,\s*", raw) if t.strip()]
@@ -590,7 +590,7 @@ def score_checks(
     Returns: (raw_sum, max_sum, per_check_scores)
 
     Deterministic meta:
-      - If you pass components.json fields inside component_meta (test_id/component/suffix/title),
+      - If you pass components.json fields inside component_meta (test_id/component/attribute/title),
         this function derives canonical ids + expectations automatically.
       - Explicit meta values you pass still win (we only fill missing keys).
     """

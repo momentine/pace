@@ -12,7 +12,8 @@ from typing import Any, Optional
 import pandas as pd
 import streamlit as st
 
-from bench.openrouter import OpenRouterClient
+# from bench.openrouter import OpenRouterClient
+from bench.azure import AzureFoundryClient as OpenRouterClient
 from bench.registry import ensure_defaults, load_all, save_prompt_conditions
 from bench.run_engine import RunConfig, run_benchmark
 from bench.axe_runner import DEFAULT_FORM_FRAGMENT_RULES
@@ -658,13 +659,13 @@ def _render_system_prompt_editor(reg) -> None:
 #   - EDITS keep Settings dialog open
 # ----------------------------
 DEFAULT_VARIANTS = [
-    {"variant_id": "G1", "label": "Action command", "template": "Insert a {component} for “{label}”{suffix}"},
-    {"variant_id": "G2", "label": "Short specification", "template": "{component}: {label}{suffix}"},
-    {"variant_id": "G3", "label": "Descriptive object phrase", "template": "A {component} labeled “{label}”{suffix}"},
-    {"variant_id": "G4", "label": "Build instruction", "template": "Build a {component} and label for “{label}”{suffix}"},
-    {"variant_id": "G5", "label": "Standards-oriented phrasing", "template": "Accessible {component} for “{label}”{suffix}"},
+    {"variant_id": "G1", "label": "Action command", "template": "Insert a {component} for “{label}”{attribute}"},
+    {"variant_id": "G2", "label": "Short specification", "template": "{component}: {label}{attribute}"},
+    {"variant_id": "G3", "label": "Descriptive object phrase", "template": "A {component} labeled “{label}”{attribute}"},
+    {"variant_id": "G4", "label": "Build instruction", "template": "Build a {component} and label for “{label}”{attribute}"},
+    {"variant_id": "G5", "label": "Standards-oriented phrasing", "template": "Accessible {component} for “{label}”{attribute}"},
 ]
-_PREVIEW_EXAMPLE = {"component": "text field", "label": "What color is an orange?", "suffix": " with hint “orange”"}
+_PREVIEW_EXAMPLE = {"component": "text field", "label": "What color is an orange?", "attribute": " with hint “orange”"}
 
 
 def _normalize_variants(obj: Any) -> list[dict[str, Any]]:
@@ -735,7 +736,7 @@ def _render_variants_editor(reg) -> None:
         st.markdown("**Placeholders**")
         st.markdown("- `{component}` — insert the component type (e.g., text field, radio group)")
         st.markdown("- `{label}` — insert the user-facing label or question text")
-        st.markdown("- `{suffix}` — insert optional trailing details (e.g., hint text or constraints)")
+        st.markdown("- `{attribute}` — insert optional trailing details (e.g., hint text or constraints)")
 
     if "variants_rows_ui" not in st.session_state:
         file_obj = _read_json(VARIANTS_PATH)
@@ -808,10 +809,10 @@ def _render_variants_editor(reg) -> None:
                         )
                     with b3:
                         st.button(
-                            "{suffix}",
+                            "{attribute}",
                             key=f"v_ins_s_{vid}",
                             on_click=_append_token,
-                            args=(tpl_key, "{suffix}"),
+                            args=(tpl_key, "{attribute}"),
                             use_container_width=True,
                         )
 
@@ -837,11 +838,11 @@ def _render_variants_editor(reg) -> None:
                 {
                     "variant_id": vid,
                     "label": "New variant",
-                    "template": "Insert a {component} for “{label}”{suffix}",
+                    "template": "Insert a {component} for “{label}”{attribute}",
                 }
             )
             st.session_state[f"v_lab_{vid}"] = "New variant"
-            st.session_state[f"v_tpl_{vid}"] = "Insert a {component} for “{label}”{suffix}"
+            st.session_state[f"v_tpl_{vid}"] = "Insert a {component} for “{label}”{attribute}"
             _autosave_variants(rows)
             st.rerun()
 
@@ -875,7 +876,7 @@ def _normalize_tests_new_schema(raw: Any) -> list[dict[str, Any]]:
         title = str(t.get("title", "")).strip()
         component = str(t.get("component", "") or t.get("component_phrase", "")).strip()
         label = str(t.get("label", "")).strip()
-        suffix = str(t.get("suffix", "")).strip()
+        attribute = str(t.get("attribute", "")).strip()
 
         fields = t.get("fields", {})
         if isinstance(fields, dict):
@@ -883,15 +884,15 @@ def _normalize_tests_new_schema(raw: Any) -> list[dict[str, Any]]:
                 component = str(fields.get("component", "") or fields.get("component_phrase", "")).strip()
             if not label:
                 label = str(fields.get("label", "")).strip()
-            if not suffix:
-                suffix = str(fields.get("suffix", "")).strip()
+            if not attribute:
+                attribute = str(fields.get("attribute", "")).strip()
 
         if not tid:
             continue
         if not title and component:
             title = _title_case_first(component)
 
-        out.append({"test_id": tid, "title": title, "component": component, "label": label, "suffix": suffix})
+        out.append({"test_id": tid, "title": title, "component": component, "label": label, "attribute": attribute})
     return out
 
 
@@ -937,15 +938,15 @@ def _autosave_components(tests: list[dict[str, Any]]) -> None:
         title = str(t.get("title", "")).strip()
         component = str(t.get("component", "")).strip()
         label = str(t.get("label", "")).strip()
-        suffix2 = str(t.get("suffix", "")).strip()
+        attribute2 = str(t.get("attribute", "")).strip()
 
         if not title and component:
             title = _title_case_first(component)
-        if suffix2 and not suffix2.startswith(" "):
-            suffix2 = " " + suffix2
+        if attribute2 and not attribute2.startswith(" "):
+            attribute2 = " " + attribute2
 
         payload_now.append(
-            {"test_id": tid, "title": title or tid, "component": component, "label": label, "suffix": suffix2}
+            {"test_id": tid, "title": title or tid, "component": component, "label": label, "attribute": attribute2}
         )
     _write_json(COMPONENTS_PATH, {"tests": payload_now})
     st.session_state["_reg_reload"] = True
@@ -977,7 +978,7 @@ def _render_components_editor(reg) -> None:
         if st.button("Add test", type="primary", key="settings_components_add_first", use_container_width=True):
             _stay_in_settings()
             tid = "C1"
-            new_test = {"test_id": tid, "title": "New test", "component": "", "label": "", "suffix": ""}
+            new_test = {"test_id": tid, "title": "New test", "component": "", "label": "", "attribute": ""}
             st.session_state["settings_components_tests"] = [new_test]
             st.session_state["settings_components_picked"] = tid
             st.session_state[f"sc_title_{tid}"] = "New test"
@@ -1031,14 +1032,14 @@ def _render_components_editor(reg) -> None:
     if k_lab not in st.session_state:
         st.session_state[k_lab] = (test.get("label") or "").strip()
     if k_suf not in st.session_state:
-        st.session_state[k_suf] = (test.get("suffix") or "").strip()
+        st.session_state[k_suf] = (test.get("attribute") or "").strip()
 
     def _on_components_edit() -> None:
         _stay_in_settings()
         test["title"] = (st.session_state.get(k_title, "") or "").strip()
         test["component"] = (st.session_state.get(k_comp, "") or "").strip()
         test["label"] = (st.session_state.get(k_lab, "") or "").strip()
-        test["suffix"] = (st.session_state.get(k_suf, "") or "").strip()
+        test["attribute"] = (st.session_state.get(k_suf, "") or "").strip()
         tests[idx] = dict(test)
         st.session_state["settings_components_tests"] = tests
         _autosave_components(tests)
@@ -1046,7 +1047,7 @@ def _render_components_editor(reg) -> None:
     st.text_input("Title", key=k_title, placeholder="e.g., Text Field with Placeholder", on_change=_on_components_edit)
     st.text_input("Component", key=k_comp, placeholder="e.g., text field", on_change=_on_components_edit)
     st.text_input("Label", key=k_lab, placeholder="e.g., What color is an orange?", on_change=_on_components_edit)
-    st.text_input("Suffix (optional)", key=k_suf, placeholder="e.g., with hint “Rex”", on_change=_on_components_edit)
+    st.text_input("attribute (optional)", key=k_suf, placeholder="e.g., with hint “orange”", on_change=_on_components_edit)
 
     st.divider()
     st.subheader("Generated variants")
@@ -1054,14 +1055,14 @@ def _render_components_editor(reg) -> None:
     if not variants:
         st.info("No variants available.")
     else:
-        suffix = (test.get("suffix") or "").strip()
-        if suffix and not suffix.startswith(" "):
-            suffix = " " + suffix
+        attribute = (test.get("attribute") or "").strip()
+        if attribute and not attribute.startswith(" "):
+            attribute = " " + attribute
 
         fields = {
             "component": (test.get("component") or "").strip(),
             "label": (test.get("label") or "").strip(),
-            "suffix": suffix,
+            "attribute": attribute,
         }
 
         for v in variants:
@@ -1085,7 +1086,7 @@ def _render_components_editor(reg) -> None:
             _stay_in_settings()
             existing = [str(t.get("test_id", "")).strip() for t in tests if str(t.get("test_id", "")).strip()]
             tid = _next_test_id(existing)
-            new_test = {"test_id": tid, "title": "New test", "component": "", "label": "", "suffix": ""}
+            new_test = {"test_id": tid, "title": "New test", "component": "", "label": "", "attribute": ""}
             tests.append(new_test)
             st.session_state["settings_components_tests"] = tests
             st.session_state["settings_components_picked"] = tid
@@ -1732,13 +1733,21 @@ with tab_run:
     ensure_defaults()
     reg = load_all()
 
+    # client = OpenRouterClient()
+    # api_status = client.preflight()
+
+    # if not api_status.has_key:
+    #     st.error("OPENROUTER_API_KEY is missing.")
+    # if api_status.has_key and not api_status.reachable:
+    #     st.error(f"OpenRouter unreachable: {api_status.error or 'unknown error'}")
+
     client = OpenRouterClient()
     api_status = client.preflight()
 
     if not api_status.has_key:
-        st.error("OPENROUTER_API_KEY is missing.")
+        st.error("AZURE_FOUNDRY_API_KEY is missing.")
     if api_status.has_key and not api_status.reachable:
-        st.error(f"OpenRouter unreachable: {api_status.error or 'unknown error'}")
+        st.error(f"Azure Foundry unreachable: {api_status.error or 'unknown error'}")
 
     prompt_conditions = reg.prompt_conditions.get("prompt_conditions", []) or []
     variants = reg.variants.get("variants", []) or []
@@ -2793,15 +2802,35 @@ with tab_results:
                 if tmp.empty:
                     st.caption("No data.")
                 else:
+                    # --- NEW: component selector ---
+                    all_components = sorted(tmp["component_title"].dropna().astype(str).unique().tolist())
+                    selected_components = st.multiselect(
+                        "Select components to view",
+                        options=all_components,
+                        default=all_components,
+                        key="rq4_component_picker",
+                    )
+
+                    if not selected_components:
+                        st.warning("Select at least one component.")
+                        st.stop()
+
+                    tmp = tmp[tmp["component_title"].astype(str).isin(selected_components)]
+
                     comp_means = tmp.groupby("component_title")["norm_score"].mean().sort_values(ascending=False)
-                    top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
-                    keep = set(comp_means.head(top_k).index.tolist())
-                    tmp = tmp[tmp["component_title"].isin(keep)]
+
+                    # only use top_k when user is viewing everything
+                    if len(selected_components) == len(all_components):
+                        top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
+                        keep = set(comp_means.head(top_k).index.tolist())
+                        tmp = tmp[tmp["component_title"].isin(keep)]
+                        comp_means = tmp.groupby("component_title")["norm_score"].mean().sort_values(ascending=False)
+
                     rq4_split = st.checkbox("Split by model", value=False, key="rq4_split_checkbox")
 
                     if rq4_split and ("model_name" in tmp.columns) and (tmp["model_name"].nunique() > 1):
                         s = _mean_stats(tmp, ["component_title", "model_name"])
-                        order = comp_means.head(top_k).index.tolist()
+                        order = comp_means.index.tolist()
                         s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
                         s = s.sort_values(["component_title", "model_name"])
                         _grouped_bar_with_error(
@@ -2820,7 +2849,7 @@ with tab_results:
                         st.dataframe(_pretty_table(s), use_container_width=True, height=320)
                     else:
                         s = _mean_stats(tmp, ["component_title"])
-                        order = comp_means.head(top_k).index.tolist()
+                        order = comp_means.index.tolist()
                         s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
                         s = s.sort_values("component_title")
                         _grouped_bar_with_error(
@@ -2839,12 +2868,69 @@ with tab_results:
             else:
                 st.caption("Need component_title and norm_score.")
 
-            st.divider()
-            
-            st.subheader("Data preview")
-            st.dataframe(df.head(400), use_container_width=True, height=380)
 
-            st.divider()
+            # st.subheader("Component Accessibility ")
+            # st.caption("Accessibility differences across HTML form components.")
+
+            # if "component_title" in df_ok.columns and "norm_score" in df_ok.columns:
+            #     tmp = df_ok.copy()
+            #     tmp["norm_score"] = pd.to_numeric(tmp["norm_score"], errors="coerce")
+            #     tmp = tmp.dropna(subset=["norm_score"])
+            #     if tmp.empty:
+            #         st.caption("No data.")
+            #     else:
+            #         comp_means = tmp.groupby("component_title")["norm_score"].mean().sort_values(ascending=False)
+            #         top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
+            #         keep = set(comp_means.head(top_k).index.tolist())
+            #         tmp = tmp[tmp["component_title"].isin(keep)]
+            #         rq4_split = st.checkbox("Split by model", value=False, key="rq4_split_checkbox")
+
+            #         if rq4_split and ("model_name" in tmp.columns) and (tmp["model_name"].nunique() > 1):
+            #             s = _mean_stats(tmp, ["component_title", "model_name"])
+            #             order = comp_means.head(top_k).index.tolist()
+            #             s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
+            #             s = s.sort_values(["component_title", "model_name"])
+            #             _grouped_bar_with_error(
+            #                 s,
+            #                 x_col="component_title",
+            #                 series_col="model_name",
+            #                 title="Accessibility score by component (grouped by model)",
+            #                 error_mode=error_mode,
+            #                 scheme=scheme,
+            #                 x_title="Component",
+            #                 series_title="Model",
+            #                 y_title="Accessibility score (normalized)",
+            #                 label_angle=-35,
+            #                 height=560,
+            #             )
+            #             st.dataframe(_pretty_table(s), use_container_width=True, height=320)
+            #         else:
+            #             s = _mean_stats(tmp, ["component_title"])
+            #             order = comp_means.head(top_k).index.tolist()
+            #             s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
+            #             s = s.sort_values("component_title")
+            #             _grouped_bar_with_error(
+            #                 s,
+            #                 x_col="component_title",
+            #                 series_col=None,
+            #                 title="Accessibility score by component",
+            #                 error_mode=error_mode,
+            #                 scheme=scheme,
+            #                 x_title="Component",
+            #                 y_title="Accessibility score (normalized)",
+            #                 label_angle=-35,
+            #                 height=560,
+            #             )
+            #             st.dataframe(_pretty_table(s.sort_values("mean", ascending=False)), use_container_width=True, height=320)
+            # else:
+            #     st.caption("Need component_title and norm_score.")
+
+            # st.divider()
+            
+            # st.subheader("Data preview")
+            # st.dataframe(df.head(400), use_container_width=True, height=380)
+
+            # st.divider()
             
     # ============================
     # Axe score (axe_score)
@@ -3014,6 +3100,63 @@ with tab_results:
 
             st.divider()
 
+            # st.subheader("Component ")
+            # st.caption("Axe score differences across HTML form components.")
+
+            # if "component_title" in df_ok.columns and "axe_score" in df_ok.columns:
+            #     tmp = df_ok.copy()
+            #     tmp["axe_score"] = pd.to_numeric(tmp["axe_score"], errors="coerce")
+            #     tmp = tmp.dropna(subset=["axe_score"])
+            #     if tmp.empty:
+            #         st.caption("No data.")
+            #     else:
+            #         comp_means = tmp.groupby("component_title")["axe_score"].mean().sort_values(ascending=False)
+            #         top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
+            #         keep = set(comp_means.head(top_k).index.tolist())
+            #         tmp = tmp[tmp["component_title"].isin(keep)]
+            #         axe_rq4_split = st.checkbox("Split by model", value=False, key="axe_rq4_split_checkbox")
+
+            #         if axe_rq4_split and ("model_name" in tmp.columns) and (tmp["model_name"].nunique() > 1):
+            #             s = _mean_stats_value(tmp, ["component_title", "model_name"], "axe_score")
+            #             order = comp_means.head(top_k).index.tolist()
+            #             s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
+            #             s = s.sort_values(["component_title", "model_name"])
+            #             _grouped_bar_with_error(
+            #                 s,
+            #                 x_col="component_title",
+            #                 series_col="model_name",
+            #                 title="Axe score by component (grouped by model)",
+            #                 error_mode=error_mode,
+            #                 scheme=scheme,
+            #                 x_title="Component",
+            #                 series_title="Model",
+            #                 y_title="Axe score (0–1)",
+            #                 label_angle=-35,
+            #                 height=560,
+            #             )
+            #             st.dataframe(_pretty_table(s), use_container_width=True, height=320)
+            #         else:
+            #             s = _mean_stats_value(tmp, ["component_title"], "axe_score")
+            #             order = comp_means.head(top_k).index.tolist()
+            #             s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
+            #             s = s.sort_values("component_title")
+            #             _grouped_bar_with_error(
+            #                 s,
+            #                 x_col="component_title",
+            #                 series_col=None,
+            #                 title="Axe score by component",
+            #                 error_mode=error_mode,
+            #                 scheme=scheme,
+            #                 x_title="Component",
+            #                 y_title="Axe score (0–1)",
+            #                 label_angle=-35,
+            #                 height=560,
+            #             )
+            #             st.dataframe(_pretty_table(s.sort_values("mean", ascending=False)), use_container_width=True, height=320)
+            # else:
+            #     st.caption("Need component_title and axe_score.")
+
+            # st.divider()
             st.subheader("Component ")
             st.caption("Axe score differences across HTML form components.")
 
@@ -3024,15 +3167,34 @@ with tab_results:
                 if tmp.empty:
                     st.caption("No data.")
                 else:
+                    # --- NEW: component selector ---
+                    all_components = sorted(tmp["component_title"].dropna().astype(str).unique().tolist())
+                    selected_components = st.multiselect(
+                        "Select components to view",
+                        options=all_components,
+                        default=all_components,
+                        key="axe_rq4_component_picker",
+                    )
+
+                    if not selected_components:
+                        st.warning("Select at least one component.")
+                        st.stop()
+
+                    tmp = tmp[tmp["component_title"].astype(str).isin(selected_components)]
+
                     comp_means = tmp.groupby("component_title")["axe_score"].mean().sort_values(ascending=False)
-                    top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
-                    keep = set(comp_means.head(top_k).index.tolist())
-                    tmp = tmp[tmp["component_title"].isin(keep)]
+
+                    if len(selected_components) == len(all_components):
+                        top_k = _safe_slider_topk(int(len(comp_means)), default_k=20, cap=60)
+                        keep = set(comp_means.head(top_k).index.tolist())
+                        tmp = tmp[tmp["component_title"].isin(keep)]
+                        comp_means = tmp.groupby("component_title")["axe_score"].mean().sort_values(ascending=False)
+
                     axe_rq4_split = st.checkbox("Split by model", value=False, key="axe_rq4_split_checkbox")
 
                     if axe_rq4_split and ("model_name" in tmp.columns) and (tmp["model_name"].nunique() > 1):
                         s = _mean_stats_value(tmp, ["component_title", "model_name"], "axe_score")
-                        order = comp_means.head(top_k).index.tolist()
+                        order = comp_means.index.tolist()
                         s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
                         s = s.sort_values(["component_title", "model_name"])
                         _grouped_bar_with_error(
@@ -3051,7 +3213,7 @@ with tab_results:
                         st.dataframe(_pretty_table(s), use_container_width=True, height=320)
                     else:
                         s = _mean_stats_value(tmp, ["component_title"], "axe_score")
-                        order = comp_means.head(top_k).index.tolist()
+                        order = comp_means.index.tolist()
                         s["component_title"] = pd.Categorical(s["component_title"], categories=order, ordered=True)
                         s = s.sort_values("component_title")
                         _grouped_bar_with_error(
@@ -3070,8 +3232,7 @@ with tab_results:
             else:
                 st.caption("Need component_title and axe_score.")
 
-            st.divider()
-            
+                        
             st.subheader("Data preview")
             st.dataframe(df.head(400), use_container_width=True, height=380)
             
