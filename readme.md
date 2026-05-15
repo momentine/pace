@@ -235,6 +235,26 @@ http://localhost:8501
 
 Open that address in your browser.
 
+## A Tiny Tour
+
+<p align="center">
+  <img src="assets/settings.png" alt="PACE settings screen for editing models, system instructions, components, variants, axe, and schema settings" width="780">
+</p>
+
+<p align="center"><em>settings · tune the benchmark pieces</em></p>
+
+<p align="center">
+  <img src="assets/run.png" alt="PACE run screen for selecting benchmark conditions and launching a run" width="780">
+</p>
+
+<p align="center"><em>run · choose a benchmark set and launch it</em></p>
+
+<p align="center">
+  <img src="assets/results.png" alt="PACE results screen for reviewing benchmark outputs and comparing axe-core and schema-based results" width="780">
+</p>
+
+<p align="center"><em>results · read the outputs and compare conditions</em></p>
+
 ## Run a Benchmark
 
 1. Open the Streamlit app.
