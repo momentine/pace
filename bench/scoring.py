@@ -341,9 +341,20 @@ def _soup(html: str) -> BeautifulSoup:
         return BeautifulSoup(html, "html.parser")
 
 
+def _contains_markdown_fence(html: str) -> bool:
+    return "```" in html or "~~~" in html
+
+
+def _has_parseable_html_elements(s: BeautifulSoup) -> bool:
+    meaningful = []
+    for t in s.find_all():
+        if t.name not in {"html", "body", "head"}:
+            meaningful.append(t)
+    return len(meaningful) > 0
+
+
 def _is_htmlish(html: str) -> bool:
-    if "```" in html or "~~~" in html:
-        return False
+    # Fence handling stays in DOC_VALID_HTML.
     return bool(re.search(r"<[a-zA-Z][^>]*>", html))
 
 
@@ -589,10 +600,9 @@ def score_checks(
     """
     Returns: (raw_sum, max_sum, per_check_scores)
 
-    Deterministic meta:
-      - If you pass components.json fields inside component_meta (test_id/component/attribute/title),
-        this function derives canonical ids + expectations automatically.
-      - Explicit meta values you pass still win (we only fill missing keys).
+    DOC_VALID_HTML still penalizes markdown fences and other format issues.
+    But downstream schema checks are hard-zeroed only when there is no
+    parseable HTML at all.
     """
     defs = score_spec.get("check_definitions", {}) or {}
     scale_max = int((score_spec.get("scoring_scale", {}) or {}).get("max", 2))
@@ -603,7 +613,44 @@ def score_checks(
     s = _soup(html)
     per: List[CheckScore] = []
 
+    has_parseable_html = _has_parseable_html_elements(s)
+
+    doc_valid_score = None
+    if "DOC_VALID_HTML" in component_checks:
+        if "DOC_VALID_HTML" not in defs:
+            per.append(CheckScore("DOC_VALID_HTML", 0, "Check not defined in score.json."))
+            doc_valid_score = 0
+        else:
+            fn = CHECK_IMPL.get("DOC_VALID_HTML")
+            if not fn:
+                per.append(CheckScore("DOC_VALID_HTML", 0, "Check not implemented in scoring.py."))
+                doc_valid_score = 0
+            else:
+                sc, why = fn(html, s, meta)
+                sc = int(max(0, min(scale_max, sc)))
+                per.append(CheckScore("DOC_VALID_HTML", sc, why))
+                doc_valid_score = sc
+
+    # Hard-zero only when there is no parseable HTML at all.
+    if not has_parseable_html:
+        for cid in component_checks:
+            if cid == "DOC_VALID_HTML":
+                continue
+            if cid not in defs:
+                per.append(CheckScore(cid, 0, "Check not defined in score.json."))
+            elif cid not in CHECK_IMPL:
+                per.append(CheckScore(cid, 0, "Check not implemented in scoring.py."))
+            else:
+                per.append(CheckScore(cid, 0, "No parseable HTML found; downstream schema checks default to 0."))
+        raw = sum(x.score for x in per)
+        mx = scale_max * len(component_checks)
+        return raw, mx, per
+
+    # Otherwise run all remaining checks normally, even if DOC_VALID_HTML failed.
     for cid in component_checks:
+        if cid == "DOC_VALID_HTML":
+            continue
+
         if cid not in defs:
             per.append(CheckScore(cid, 0, "Check not defined in score.json."))
             continue
@@ -628,17 +675,22 @@ def score_checks(
 
 def DOC_VALID_HTML(html: str, s: BeautifulSoup, meta: Dict[str, Any]) -> Tuple[int, str]:
     if not _is_htmlish(html):
-        return 0, "Not HTML-only or contains markdown fences / no tags."
-    if s.find() is None:
+        return 0, "No HTML tag pattern found."
+    if not _has_parseable_html_elements(s):
         return 0, "Parser found no elements."
 
+    has_fence = _contains_markdown_fence(html)
     forbid = bool(meta.get("forbid_script_style") is True)
-    if s.find(["script", "style"]):
+    has_script_style = s.find(["script", "style"]) is not None
+
+    if has_fence:
+        return 0, "Contains markdown fences around otherwise parseable HTML."
+    if has_script_style:
         if forbid:
             return 0, "Contains forbidden <script>/<style> under constraints."
-        return 1, "Contains <script>/<style>."
+        return 1, "Parseable HTML fragment, but contains <script>/<style>."
 
-    return 2, "Parseable HTML fragment; no forbidden elements."
+    return 2, "Parseable HTML fragment; no markdown fences or forbidden elements."
 
 
 def ID_UNIQUENESS(html: str, s: BeautifulSoup, meta: Dict[str, Any]) -> Tuple[int, str]:

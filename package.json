@@ -10,6 +10,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axe-core": "^4.11.1"
+    "axe-core": "^4.11.4"
   }
 }

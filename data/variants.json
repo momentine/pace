@@ -2,18 +2,8 @@
   "variants": [
     {
       "variant_id": "G1",
-      "label": "Unspecified",
-      "template": "{component} “{label}”{attribute}"
-    },
-    {
-      "variant_id": "G2",
       "label": "Specified",
       "template": "Create a {component} for “{label}”{attribute}"
-    },
-    {
-      "variant_id": "G3",
-      "label": "Detailed",
-      "template": "Create a {component} for “{label}”{attribute} as it would appear within a real web form."
     }
   ]
 }

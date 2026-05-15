@@ -2,18 +2,8 @@
   "prompt_conditions": [
     {
       "condition_id": "cond_001",
-      "name": "Unguided",
-      "system_prompt": "Respond with HTML only. Do not include CSS, JavaScript, comments, or explanations."
-    },
-    {
-      "condition_id": "cond_002",
-      "name": "Little Guidance",
-      "system_prompt": "Generate accessible HTML. Respond with HTML only. Do not include CSS, JavaScript, comments, or explanations."
-    },
-    {
-      "condition_id": "cond_003",
-      "name": "Expert Guidance",
-      "system_prompt": "Generate accessible HTML for the requested component. Ensure that its purpose, any supporting text, and any states or feedback are conveyed through the HTML. Avoid relying on placeholder text alone to communicate meaning. Use HTML attributes so that relevant relationships and states can be interpreted by assistive technologies. Respond with HTML only. Do not include CSS, JavaScript, comments, or explanations."
+      "name": "Baseline",
+      "system_prompt": "You are a coding assistant. Generate HTML only. Do not include CSS, JavaScript, comments, or explanations."
     }
   ]
 }
