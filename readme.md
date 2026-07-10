@@ -13,10 +13,10 @@ PACE is a benchmarking framework for evaluating accessibility in HTML generated 
 
 PACE is designed to test how accessible LLM-generated HTML form components are under different benchmark conditions. It supports comparisons across:
 
-- models
-- system instructions
-- request variants
-- form component types
+- **models** — the LLMs being tested
+- **system instructions** — the setup messages given before each task
+- **request variants** — different ways to phrase the same component request
+- **form component types** — the HTML form elements being generated, such as text inputs, radio groups, or buttons
 
 Each generated output is evaluated through two complementary layers:
 
