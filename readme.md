@@ -1,10 +1,14 @@
-<p>
-  <img src="assets/logo.png" alt="PACE logo" width="72">
-</p>
-
-# PACE
-
-**Prompt Accessibility Controlled Evaluation**
+<table>
+  <tr>
+    <td width="76">
+      <img src="assets/logo.png" alt="PACE logo" width="64">
+    </td>
+    <td>
+      <h1>PACE</h1>
+      <strong>Prompt Accessibility Controlled Evaluation</strong>
+    </td>
+  </tr>
+</table>
 
 Yumeng Ma, Jacob O. Wobbrock, Joe Devon, Aaron Gustafson, Michael Fairchild, Jennifer Mankoff, and Venkatesh Potluri
 
