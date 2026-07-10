@@ -1,4 +1,4 @@
-<img src="assets/logo.png" alt="PACE logo" width="72" align="left">
+<img src="assets/logo.png" alt="PACE logo" width="36" align="left">
 
 <h1>PACE</h1>
 
