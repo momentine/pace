@@ -1,6 +1,8 @@
-# PACE
+<p>
+  <img src="assets/logo.png" alt="PACE logo" width="72">
+</p>
 
-<img src="assets/logo.svg" alt="PACE logo" width="120">
+# PACE
 
 **Prompt Accessibility Controlled Evaluation**
 
