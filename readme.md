@@ -5,12 +5,13 @@
 <strong>Prompt Accessibility Controlled Evaluation</strong>
 
 <br clear="left">
-<br>
 
 [Yumeng Ma](https://www.yumengma.com/), [Jacob O. Wobbrock](https://faculty.washington.edu/wobbrock/), [Joe Devon](https://accessibility.day/about/), [Aaron Gustafson](https://www.aaron-gustafson.com/), [Michael Fairchild](https://github.com/mfairchild365), [Jennifer Mankoff](https://make4all.org/portfolio/jennifer-mankoff/), and [Venkatesh Potluri](https://venkateshpotluri.me/)
 
-[![Repository Status](https://img.shields.io/badge/status-active-green)](#)
-[![Artifact Type](https://img.shields.io/badge/artifact-benchmarking%20tool-blue)](#)
+![Paper](https://img.shields.io/badge/paper-coming%20soon-ffc0cb)
+![DOI](https://img.shields.io/badge/DOI-TBA-f7a8d8)
+![Artifact](https://img.shields.io/badge/artifact-benchmarking%20tool-d8b4fe)
+![Accessibility](https://img.shields.io/badge/accessibility-first-b8e0d2)
 
 ## Overview
 
@@ -87,6 +88,16 @@ playwright install
 npm install axe-core
 ```
 
+PACE expects axe-core here:
+
+```text
+node_modules/axe-core/axe.min.js
+```
+
+## Model and API Setup
+
+PACE currently uses the OpenRouter API for model calls.
+
 Create a `.env` file in the project root:
 
 ```env
@@ -99,7 +110,25 @@ Refresh the OpenRouter model list:
 python scripts/fetch_openrouter_models.py
 ```
 
-Run the app:
+This updates:
+
+```text
+data/models.json
+```
+
+The Streamlit app reads `data/models.json` to populate available models in the interface.
+
+Expected output:
+
+```text
+Saved 123 models -> data/models.json
+```
+
+Run this script again whenever you want to refresh available OpenRouter models.
+
+Azure API support is being embedded, but OpenRouter is the current default path.
+
+## Run the App
 
 ```bash
 streamlit run app.py
@@ -110,6 +139,8 @@ Streamlit usually starts at:
 ```text
 http://localhost:8501
 ```
+
+Open that address in your browser.
 
 ## A Tiny Tour
 
@@ -172,6 +203,6 @@ PACE studies accessibility, so this repository should remain usable with assisti
 
 Please keep headings descriptive, give images meaningful alt text, use language tags for code blocks, and report accessibility barriers through repository issues or direct contact with the maintainers.
 
-## Project Scope
+## Scope
 
 PACE currently evaluates AI-generated HTML form components. The tool can be adapted to other interface outputs by changing component definitions, scoring rules, and evaluation pipelines.
