@@ -1,12 +1,13 @@
-<img src="assets/logo.svg" alt="PACE logo" width="64" align="left">
+<img src="assets/logo.png" alt="PACE logo" width="72" align="left">
 
 <h1>PACE</h1>
 
 <strong>Prompt Accessibility Controlled Evaluation</strong>
 
 <br clear="left">
+<br>
 
-Yumeng Ma, Jacob O. Wobbrock, Joe Devon, Aaron Gustafson, Michael Fairchild, Jennifer Mankoff, and Venkatesh Potluri
+[Yumeng Ma](https://www.yumengma.com/), [Jacob O. Wobbrock](https://faculty.washington.edu/wobbrock/), [Joe Devon](https://accessibility.day/about/), [Aaron Gustafson](https://www.aaron-gustafson.com/), [Michael Fairchild](https://github.com/mfairchild365), [Jennifer Mankoff](https://make4all.org/portfolio/jennifer-mankoff/), and [Venkatesh Potluri](https://venkateshpotluri.me/)
 
 [![Repository Status](https://img.shields.io/badge/status-active-green)](#)
 [![Artifact Type](https://img.shields.io/badge/artifact-benchmarking%20tool-blue)](#)
