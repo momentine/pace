@@ -20,39 +20,39 @@ It supports controlled comparisons across:
 
 - **models** — the LLMs being tested
 - **system instructions** — setup messages given before each task
-- **request variants** — different phrasings for the same component request
 - **form component types** — HTML form elements such as text inputs, radio groups, and buttons
+- **request variants** — different phrasings for the same component request
 
 Each generated output is evaluated with two complementary layers:
 
 1. **axe-core testing** in `bench/axe_runner.py`
 2. **schema-based scoring** in `bench/scoring.py`
 
-Together, these layers compare automated accessibility findings with component-specific structural checks.
+These layers compare automated accessibility findings and component-specific structural checks respecitively.
 
 ## Repository Map
 
 ```text
 pace/
-├── app.py
-├── bench/
-│   ├── axe_runner.py
-│   ├── io.py
-│   ├── openrouter.py
-│   ├── registry.py
-│   ├── run_engine.py
-│   └── scoring.py
-├── data/
-│   ├── components.json
-│   ├── models.json
-│   ├── prompt_conditions.json
-│   ├── score.json
-│   └── variants.json
+├── app.py                         # Streamlit interface
+├── bench/                         # benchmark execution and scoring code
+│   ├── axe_runner.py              # axe-core evaluation
+│   ├── io.py                      # file and run output helpers
+│   ├── openrouter.py              # OpenRouter API client
+│   ├── registry.py                # registry loading and validation
+│   ├── run_engine.py              # benchmark run orchestration
+│   └── scoring.py                 # schema-based scoring
+├── data/                          # editable benchmark registries
+│   ├── components.json            # component specifications
+│   ├── models.json                # model list
+│   ├── prompt_conditions.json     # system instruction conditions
+│   ├── score.json                 # schema scoring rules
+│   └── variants.json              # request variants
 ├── scripts/
-│   └── fetch_openrouter_models.py
-├── assets/
+│   └── fetch_openrouter_models.py # refresh OpenRouter model list
+├── assets/                        # README images and logo
 ├── output/
-│   └── _runs/
+│   └── _runs/                     # benchmark outputs
 └── README.md
 ```
 
