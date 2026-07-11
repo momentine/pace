@@ -8,10 +8,9 @@
 
 [Yumeng Ma](https://www.yumengma.com/), [Jacob O. Wobbrock](https://faculty.washington.edu/wobbrock/), [Joe Devon](https://accessibility.day/about/), [Aaron Gustafson](https://www.aaron-gustafson.com/), [Michael Fairchild](https://github.com/mfairchild365), [Jennifer Mankoff](https://make4all.org/portfolio/jennifer-mankoff/), and [Venkatesh Potluri](https://venkateshpotluri.me/)
 
-![Paper](https://img.shields.io/badge/paper-coming%20soon-ffc0cb)
-![DOI](https://img.shields.io/badge/DOI-TBA-f7a8d8)
+![Paper DOI](https://img.shields.io/badge/paper-coming%20soon-ffc0cb)
+[![Dataset DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21303068.svg)](https://doi.org/10.5281/zenodo.21303068)
 ![Artifact](https://img.shields.io/badge/artifact-benchmarking%20tool-d8b4fe)
-![Accessibility](https://img.shields.io/badge/accessibility-first-b8e0d2)
 
 ## Overview
 
